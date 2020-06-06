@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import './App.css'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import Notification from './components/Notification'
@@ -9,16 +10,59 @@ import loginService from './services/login'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [errorMessage, setErrorMessage] = useState('')
+  const [newBlog, setNewBlog] = useState({
+    author: null,
+    title: null,
+    url: null
+  })
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
+  const [title, setTitle] = useState('')
+  const [notification, setNotification] = useState({
+    message:'',
+    classs:'',
+  })
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs )
+    blogService.getAll().then(newBlogs =>
+      setBlogs( newBlogs )
     )
   }, [user])
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      blogService.setToken(user.token)
+    }
+  }, [])
+
+  const handleBlogAdded = async (event) => {
+    event.preventDefault()
+    console.log('Adding Note')
+    const newBlog = {
+      title: title,
+      author: author,
+      url: url,
+      user: user,
+    }
+    console.log(newBlog)
+    blogService
+      .create(newBlog)
+      .then(returnedBlog => {
+          const blogAddedNotification = {
+            message: `Success: ${returnedBlog.title} added`,
+            class: 'success'
+          }
+          setNotification(blogAddedNotification)
+          setBlogs(blogs.concat(returnedBlog))
+          setNewBlog('')
+      })
+  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -27,21 +71,43 @@ const App = () => {
       const user = await loginService.login({
         username, password
       })
-
+      window.localStorage.setItem(
+        'loggedBlogAppUser', JSON.stringify(user)
+      )
+      blogService.setToken(user.token)
+      const loginNotification = {
+        message: `Welcome ${user.name}`,
+        class: 'success',
+      }
+      setNotification(loginNotification)
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
       setUser(user)
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setErrorMessage('Wrong credentials')
+      const newNotification = {
+        message: 'Invalid Credentials',
+        class: 'error',
+      }
+      setNotification(newNotification)
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotification(null)
       }, 5000)
     }
   }
 
+  const handleLogout = (event) => {
+    event.preventDefault()
+    console.log('logging out')
+    setUser(null)
+    window.localStorage.clear()
+  }
+
   return (
   <>
-    <Notification message={errorMessage} />
+    <Notification message={ notification } />
     { user === null ?
       <LoginForm
         username={ username }
@@ -51,10 +117,21 @@ const App = () => {
         handleLogin={ handleLogin }
       />
       :
+      <>
       <BlogList
         blogs={ blogs }
         user={ user }
+        handleLogout={ handleLogout }
       />
+      <BlogForm
+        newBlog= { newBlog }
+        setTitle= { setTitle }
+        title= { title }
+        setAuthor= { setAuthor }
+        setUrl= { setUrl }
+        handleBlogAdded = { handleBlogAdded }
+      />
+      </>
      }
   </>
   )

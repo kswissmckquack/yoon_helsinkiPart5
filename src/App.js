@@ -5,6 +5,7 @@ import LoginForm from './components/LoginForm'
 import Notification from './components/Notification'
 import BlogForm from './components/BlogForm'
 import BlogList from './components/BlogList'
+import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -26,6 +27,8 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
+  const blogFormRef = React.createRef()
+  console.log(blogFormRef)
   useEffect(() => {
     blogService.getAll().then(newBlogs =>
       setBlogs( newBlogs )
@@ -43,6 +46,7 @@ const App = () => {
 
   const handleBlogAdded = async (event) => {
     event.preventDefault()
+    blogFormRef.current.toggleVisibility()
     console.log('Adding Note')
     const newBlog = {
       title: title,
@@ -59,6 +63,9 @@ const App = () => {
             class: 'success'
           }
           setNotification(blogAddedNotification)
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
           setBlogs(blogs.concat(returnedBlog))
           setNewBlog('')
       })
@@ -123,14 +130,17 @@ const App = () => {
         user={ user }
         handleLogout={ handleLogout }
       />
-      <BlogForm
-        newBlog= { newBlog }
-        setTitle= { setTitle }
-        title= { title }
-        setAuthor= { setAuthor }
-        setUrl= { setUrl }
-        handleBlogAdded = { handleBlogAdded }
-      />
+
+      <Togglable buttonLabel='Create Blog' ref={blogFormRef}>
+        <BlogForm
+          newBlog= { newBlog }
+          setTitle= { setTitle }
+          title= { title }
+          setAuthor= { setAuthor }
+          setUrl= { setUrl }
+          handleBlogAdded = { handleBlogAdded }
+          />
+        </Togglable>
       </>
      }
   </>

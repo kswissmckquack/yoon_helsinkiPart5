@@ -21,4 +21,10 @@ const create = async newObject => {
   return response.data
 }
 
-export default { getAll, create, setToken }
+const update = async newObject => {
+  //don't technically need authorization althought would probably want this
+  const response = await axios.put(baseUrl, newObject)
+  return response.data
+}
+
+export default { getAll, create, update, setToken }

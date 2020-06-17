@@ -20,7 +20,7 @@ const App = () => {
   const [password, setPassword] = useState('')
 
   const blogFormRef = React.createRef()
-  console.log(blogFormRef)
+
   useEffect(() => {
     blogService.getAll().then(newBlogs =>
       setBlogs( newBlogs )

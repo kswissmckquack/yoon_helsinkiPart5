@@ -21,20 +21,17 @@ const BlogForm = ({ user, blogService, setNotification, setBlogs, blogs, blogFor
       user: user,
     }
     console.log(newBlog)
-    blogService
-      .create(newBlog)
-      .then(returnedBlog => {
-          const blogAddedNotification = {
-            message: `Success: ${returnedBlog.title} added`,
-            class: 'success'
-          }
-          setNotification(blogAddedNotification)
-          setTimeout(() => {
-            setNotification(null)
-          }, 5000)
-          setBlogs(blogs.concat(returnedBlog))
-          setNewBlog('')
-      })
+    const returnedBlog = await blogService.create(newBlog)
+    const blogAddedNotification = {
+      message: `Success: ${returnedBlog.title} added`,
+      class: 'success'
+    }
+    setNotification(blogAddedNotification)
+    setTimeout(() => {
+      setNotification(null)
+    }, 5000)
+    setBlogs(blogs.concat(returnedBlog))
+    setNewBlog('')
   }
 
   return(
